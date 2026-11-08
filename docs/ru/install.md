@@ -18,7 +18,7 @@ ssh root@chat.example.com
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
-sudo git clone https://github.com/OWNER/AIDis /opt/aidis
+sudo git clone https://github.com/VitaliyPolyakov8/AIDis /opt/aidis
 ```
 
 `/opt/aidis` — удобное место, но подойдёт любая папка. Всё, что пишет AIDis, остаётся в ней и в

@@ -94,7 +94,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "OWNER",
+        "owner": "VitaliyPolyakov8",
         "repo": "AIDis",
         "releaseType": "release"
       }

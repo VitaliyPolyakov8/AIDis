@@ -8,7 +8,7 @@ game tracker filling itself. One app works with every AIDis server; nobody needs
 
 ## Install
 
-1. Open the **Releases** page of the AIDis repository on GitHub (`https://github.com/OWNER/AIDis/releases`)
+1. Open the **Releases** page of the AIDis repository on GitHub (`https://github.com/VitaliyPolyakov8/AIDis/releases`)
    and download `AIDis-Setup-<version>.exe` from the newest release.
 2. Run it. The installer is per user (no administrator rights) and asks for the language and folder.
 3. Windows may say **"Windows protected your PC"**: the installer is not code-signed (a certificate

@@ -107,7 +107,7 @@ certificate.
 { "github": { "owner": "your-name", "repo": "AIDis" } }
 ```
 
-It is compiled in at build time. The placeholder `OWNER` means "no automatic updates" (the app never
+It is compiled in at build time. The value `OWNER` means "no automatic updates" (the app never
 asks a wrong repository). To release: bump `version` in `package.json`, `npm run desktop:build`,
 create a GitHub Release tagged `v<version>` and attach `AIDis-Setup-<version>.exe`, its `.blockmap`
 and `latest.yml`.

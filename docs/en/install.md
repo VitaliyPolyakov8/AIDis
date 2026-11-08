@@ -18,7 +18,7 @@ before the commands below.)
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
-sudo git clone https://github.com/OWNER/AIDis /opt/aidis
+sudo git clone https://github.com/VitaliyPolyakov8/AIDis /opt/aidis
 ```
 
 `/opt/aidis` is a good place; any folder works. Everything AIDis writes stays inside it and in Docker

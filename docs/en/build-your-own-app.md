@@ -15,7 +15,7 @@ In your fork, edit `Desktop/desktop.config.json`:
 ```
 
 and the same names in `Desktop/package.json` under `build.publish`. The app updates from the
-Releases of that repository. With the placeholder `OWNER` automatic updates are off.
+Releases of that repository. Set `owner` to `OWNER` to build an app without automatic updates.
 
 If your builds should install **next to** the official app instead of replacing it, also change
 `build.appId` in `Desktop/package.json` (for example `io.github.yourname.aidis`) and `APP_ID` in

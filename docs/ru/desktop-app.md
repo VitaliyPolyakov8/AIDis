@@ -10,7 +10,7 @@ push-to-talk в играх, выбор экрана со звуком систе
 ## Установка
 
 1. Откройте страницу **Releases** репозитория AIDis на GitHub
-   (`https://github.com/OWNER/AIDis/releases`) и скачайте `AIDis-Setup-<версия>.exe` из самого нового
+   (`https://github.com/VitaliyPolyakov8/AIDis/releases`) и скачайте `AIDis-Setup-<версия>.exe` из самого нового
    релиза.
 2. Запустите. Установка — для текущего пользователя (права администратора не нужны), спросит язык и
    папку.

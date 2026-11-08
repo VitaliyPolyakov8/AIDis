@@ -45,7 +45,7 @@ pointing at the VPS: `chat.example.com` and `rtc.chat.example.com` (use your own
 the VPS:
 
 ```bash
-sudo git clone https://github.com/OWNER/AIDis /opt/aidis
+sudo git clone https://github.com/VitaliyPolyakov8/AIDis /opt/aidis
 sudo bash /opt/aidis/deploy/setup.sh
 ```
 

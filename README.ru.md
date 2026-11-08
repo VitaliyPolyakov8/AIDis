@@ -46,7 +46,7 @@ AIDis — для компании друзей, гильдии или небол
 на VPS: `chat.example.com` и `rtc.chat.example.com` (подставьте свой домен). Затем на VPS:
 
 ```bash
-sudo git clone https://github.com/OWNER/AIDis /opt/aidis
+sudo git clone https://github.com/VitaliyPolyakov8/AIDis /opt/aidis
 sudo bash /opt/aidis/deploy/setup.sh
 ```
 
