@@ -1,0 +1,340 @@
+/* =====================================================================================
+   AIDis 0.5.6 — visual fixes.
+   ===================================================================================== */
+
+/* ---- animated avatar frame = the speaking indicator ---------------------------------------
+   With an animated frame, the old speaking ring and the green speaking outline are not drawn
+   (they stacked into three rings); the frame itself glows while the person talks. */
+.avatar-frame:has(.avatar.has-cosmetic-frame)::before {
+  display: none;
+}
+
+.avatar-frame:has(.avatar.has-cosmetic-frame) {
+  filter: none;
+  animation: none;
+}
+
+.avatar.has-cosmetic-frame.is-speaking {
+  box-shadow: none;
+  animation: none;
+}
+
+.avatar.has-cosmetic-frame.is-speaking .avatar-cosmetic-frame {
+  opacity: 1;
+  filter: brightness(1.2) saturate(1.25) drop-shadow(0 0 5px var(--live));
+}
+
+/* ---- voice list in the sidebar: the name always keeps room ---------------------------------- */
+.voice-occupant {
+  height: 32px;
+}
+
+.voice-occupant-name {
+  min-width: 3.5em;
+}
+
+.voice-occupant-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  margin-left: auto;
+}
+
+/* Crowded rows: "LIVE" becomes its icon (the tooltip still says it). */
+.voice-occupant-icons.is-crowded .live-badge-text {
+  display: none;
+}
+
+.voice-occupant-icons.is-crowded .live-badge {
+  padding: 0 4px;
+}
+
+/* ---- custom status: long text ends in "…" (a bare text node in a flex row cannot) ------------- */
+.custom-status-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-chip-custom,
+.member-custom {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.custom-emoji {
+  flex: none;
+}
+
+/* ---- toasts: at the top, under the header (at the bottom they covered the call controls and the
+   message box, on phones completely) ------------------------------------------------------------ */
+.toasts {
+  bottom: auto;
+  top: calc(60px + env(safe-area-inset-top, 0px));
+}
+
+/* ---- settings: the close button has its own gutter (it lay on top of scrolled content) --------- */
+@media (min-width: 761px) {
+  .settings-modal .modal-body {
+    padding-right: 52px;
+  }
+}
+
+/* Phones: the tab strip fades out at the end, so a cut-off tab reads as "scroll for more". */
+@media (max-width: 760px) {
+  .settings-nav {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+}
+
+/* ---- day divider (item 10) ----
+   Messages are grouped per day; the date pins to the top of the list while that day is on screen
+   (it used to slide half under the channel header). Where scroll-state queries exist (Chromium:
+   Desktop, Android, Chrome) the stuck date becomes a pill without the side lines. */
+.day-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-divider {
+  display: block;
+}
+
+.day-divider::before,
+.day-divider::after {
+  content: none;
+}
+
+.day-divider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.day-divider-row::before,
+.day-divider-row::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+@supports (container-type: scroll-state) {
+  .day-divider {
+    position: sticky;
+    top: 6px;
+    z-index: 3;
+    container-type: scroll-state;
+  }
+
+  .day-divider-row > span {
+    padding: 2px 10px;
+    border-radius: 999px;
+    transition: background-color 0.15s ease;
+  }
+
+  @container scroll-state(stuck: top) {
+    .day-divider-row::before,
+    .day-divider-row::after {
+      visibility: hidden;
+    }
+
+    .day-divider-row > span {
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+  }
+}
+
+/* ---- room on small screens (item 9) ---- */
+.voice-room-hint-touch {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .voice-room-hint-keys {
+    display: none;
+  }
+
+  .voice-room-hint-touch {
+    display: inline;
+  }
+}
+
+.voice-room-wrap.is-small .room-avatar {
+  gap: 2px;
+}
+
+.voice-room-wrap.is-small .room-avatar-name {
+  max-width: 76px;
+  padding: 1px 5px;
+  font-size: 10px;
+}
+
+.voice-room-wrap.is-small .room-avatar-live {
+  font-size: 9px;
+  padding: 0 4px;
+}
+
+/* ---- profile theme readability (item 11) ----
+   The two colors used to be mixed into a solid fill, and warm pairs (red -> yellow) turned into a
+   muddy brown. Now the card stays dark and the colors glow in from two corners; chips sit on a
+   solid dark plate so colored tags stay readable on any theme. */
+.profile-card.has-theme,
+.profile-preview.has-theme {
+  background:
+    radial-gradient(130% 75% at 0% 0%, color-mix(in srgb, var(--profile-theme-1) 40%, transparent), transparent 72%),
+    radial-gradient(130% 75% at 100% 100%, color-mix(in srgb, var(--profile-theme-2) 36%, transparent), transparent 72%),
+    #13151a;
+  --presence-ring: color-mix(in srgb, var(--profile-theme-1) 34%, #13151a);
+  --bg-ring: color-mix(in srgb, var(--profile-theme-1) 34%, #13151a);
+}
+
+.has-theme .tag-chip,
+.has-theme .role-chip,
+.has-theme .status-chip-custom {
+  background: rgb(12 13 17 / 0.78);
+}
+
+.has-theme .tag-chip {
+  color: color-mix(in srgb, var(--game-accent) 78%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--game-accent) 35%, transparent);
+}
+
+/* ---- name style in more places (item 12): search/pins, DM list, new message, mentions, account ----
+   A gradient spans the element's box, so names in column layouts hug their text. */
+.people-option-names > .styled-name,
+.dm-home-person-names > .styled-name {
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-message-author > .styled-name,
+.mention-option-name > .styled-name,
+.dm-link .channel-name > .styled-name,
+.profile-name > .styled-name {
+  display: inline;
+}
+
+/* ---- small alignment fixes (item 14) ---- */
+.icon-btn-spacer {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+/* The joined voice channel is highlighted across the whole row (the chat button sits inside it). */
+.voice-channel.is-joined .voice-row {
+  position: relative;
+  border-radius: var(--radius-sm);
+  background: rgba(79, 209, 161, 0.08);
+}
+
+.voice-channel.is-joined .voice-row:hover {
+  background: rgba(79, 209, 161, 0.13);
+}
+
+.voice-link.is-joined,
+.voice-link.is-joined:hover {
+  background: transparent;
+}
+
+/* The big hero icon is accent-colored; the "+" on the accent button keeps the button's text color. */
+.dm-home-hero .btn svg {
+  color: inherit;
+}
+
+/* ---- What's new ---- */
+.about-whats-new {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.whats-new .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.whats-new-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.whats-new-head h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.whats-new-head time {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+}
+
+.whats-new-icon {
+  align-self: center;
+  color: var(--accent);
+}
+
+.whats-new-summary {
+  margin: 6px 0 4px;
+  color: var(--text-muted);
+}
+
+.whats-new-section h4 {
+  margin: 14px 0 6px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.whats-new-section ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  line-height: 1.45;
+}
+
+.whats-new-section li::marker {
+  color: var(--accent);
+}
+
+.whats-new-older {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.whats-new-older summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.whats-new-older .whats-new-release {
+  margin-top: 12px;
+}
+
+/* Big frames reach past the avatar: list rows keep that room, so the ring never touches the name. */
+.member-button .avatar.has-cosmetic-frame,
+.voice-occupant .avatar.has-cosmetic-frame,
+.dm-home-person .avatar.has-cosmetic-frame,
+.dm-link .avatar.has-cosmetic-frame,
+.people-option .avatar.has-cosmetic-frame,
+.mention-option .avatar.has-cosmetic-frame,
+.mini-message .avatar.has-cosmetic-frame {
+  margin-right: max(0px, calc(var(--frame-overhang, 0px) - 6px));
+}

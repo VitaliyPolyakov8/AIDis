@@ -1,0 +1,140 @@
+/* =====================================================================================
+   AIDis 0.5.1 — avatar frames, profile banners, platform icons.
+   ===================================================================================== */
+
+/* Avatar frame: drawn around the avatar (bigger than it, centred), below the presence dot. */
+.avatar-cosmetic-frame {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+  opacity: 0.9;
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+
+.avatar .presence-dot {
+  z-index: 1;
+}
+
+/* In voice views the frame is calm while idle and lights up while the user speaks. */
+.voice-occupant .avatar-cosmetic-frame,
+.participant-tile .avatar-cosmetic-frame {
+  opacity: 0.7;
+}
+
+.avatar.is-speaking .avatar-cosmetic-frame {
+  opacity: 1;
+  filter: brightness(1.25) saturate(1.2);
+}
+
+/* Built-in GIF banners: cover, keep the animation (no CSS filters on them). */
+.profile-banner.has-image {
+  background-size: cover;
+  background-position: center;
+}
+
+/* Platform icons next to names. */
+.platform-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+
+.platform-icon {
+  display: inline-flex;
+}
+
+.platform-icon.is-android {
+  color: #3ddc84;
+}
+
+.voice-occupant .platform-icons {
+  opacity: 0.8;
+}
+
+/* Profile settings: banner and frame pickers. */
+.cosmetic-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.cosmetic-grid.is-banners {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.cosmetic-grid.is-frames {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+}
+
+.cosmetic-option {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  min-height: 56px;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: var(--bg-input, rgba(255, 255, 255, 0.04));
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.cosmetic-grid.is-frames .cosmetic-option {
+  padding: 16px 6px 8px;
+}
+
+/* 0.5.6: only the option's own preview image; the avatar frame inside keeps its size. */
+.cosmetic-option > img {
+  max-width: 100%;
+}
+
+.cosmetic-grid.is-banners .cosmetic-option img {
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.cosmetic-option.is-active {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.cosmetic-option:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+/* ---- 0.5.1 Android app (html.is-android) ---------------------------------------------------
+   The WebView is edge-to-edge; Capacitor's SystemBars plugin provides --safe-area-inset-* (status
+   bar, display cutout, navigation / gesture bar). The keyboard resizes the window (adjustResize),
+   so the composer stays above it. */
+html.is-android,
+html.is-android body {
+  height: 100%;
+}
+
+html.is-android body {
+  box-sizing: border-box;
+  /* Bottom: the composer, drawers and sheets already pad themselves with env(safe-area-inset-bottom). */
+  padding: var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) var(--safe-area-inset-right, env(safe-area-inset-right, 0px)) 0
+    var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch: hover-only affordances are always visible, targets are at least 40 px. */
+html.is-android .icon-btn,
+html.is-android .stream-btn {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+/* No desktop-only screen share entry points on the phone (MediaProjection is not in 0.5.1). */
+html.is-android .share-banner .btn-secondary {
+  display: none;
+}

@@ -1,0 +1,245 @@
+/* ---- login & splash ----------------------------------------------------------- */
+
+.login-screen {
+  position: relative;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  background: radial-gradient(900px 500px at 15% -10%, rgba(138, 156, 255, 0.09), transparent 60%), radial-gradient(700px 400px at 100% 110%, rgba(79, 209, 161, 0.06), transparent 60%), var(--bg-app);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 28px 28px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-rail);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-pop);
+  animation: pop-in 0.35s var(--ease);
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.login-title {
+  margin: 6px 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.login-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-form .alert {
+  margin: 0;
+}
+
+.field-error {
+  font-size: var(--text-xs);
+  color: var(--danger);
+}
+
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap .input {
+  padding-right: 42px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+}
+
+.login-submit {
+  height: 42px;
+  margin-top: 4px;
+  font-size: var(--text-base);
+}
+
+.splash {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  animation: fade-in 0.3s ease;
+}
+
+.splash-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-sm);
+}
+
+.splash-icon {
+  color: var(--text-faint);
+}
+
+.splash-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  color: var(--text);
+  font-weight: 650;
+}
+
+.splash-text {
+  margin: 0;
+  max-width: 380px;
+}
+
+.splash-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-name {
+  font-weight: 700;
+  font-size: var(--text-lg);
+  letter-spacing: -0.01em;
+}
+
+.login-lang {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.logo-mark {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+  user-select: none;
+}
+
+/* ---- 0.7.1 sign-up, password reset, public invite ------------------------------------------- */
+
+.login-alt {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.login-card .alert {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 12px;
+}
+
+.login-card > .btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.public-invite {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.public-invite-name {
+  font-size: 1.15rem;
+}
+
+.public-invite .field-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.public-invite-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- first-run wizard ---------------------------------------------------------------------- */
+
+.setup-progress {
+  display: flex;
+  gap: 6px;
+  margin: -8px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.setup-progress li {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.setup-progress li.is-done,
+.setup-progress li.is-current {
+  background: var(--accent);
+}
+
+.setup-progress li.is-current {
+  opacity: 0.6;
+}
+
+.setup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.setup-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setup-done {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.setup-invite {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.setup-invite .input {
+  flex: 1;
+}

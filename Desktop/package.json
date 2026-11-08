@@ -1,0 +1,120 @@
+{
+  "name": "aidis-desktop",
+  "productName": "AIDis",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "AIDis Desktop: Windows app built around the shared AIDis React client.",
+  "author": "AIDis",
+  "license": "AGPL-3.0-only",
+  "main": "build/main/main.cjs",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "desktop:dev": "node scripts/dev.mjs",
+    "desktop:build": "node scripts/build.mjs && electron-builder --win nsis --x64 --publish never",
+    "desktop:pack": "node scripts/build.mjs && electron-builder --win dir --x64 --publish never",
+    "build": "node scripts/build.mjs",
+    "start": "electron .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "node test/e2e/smoke.cjs"
+  },
+  "build": {
+    "appId": "io.aidis.app",
+    "productName": "AIDis",
+    "copyright": "AIDis",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "build/**/*",
+      "package.json",
+      "!**/*.map",
+      "!**/node_modules/uiohook-napi/prebuilds/{darwin-*,linux-*,win32-arm64}/**",
+      "!**/node_modules/uiohook-napi/{src,libuiohook}/**"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": [
+          "aidis.ico",
+          "aidis-logo.png",
+          "tray/*.ico",
+          "native/*.exe"
+        ]
+      }
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/uiohook-napi/**/*.node"
+    ],
+    "npmRebuild": false,
+    "electronLanguages": [
+      "en-US",
+      "ru"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/aidis.ico",
+      "executableName": "AIDis",
+      "artifactName": "AIDis-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AIDis",
+      "uninstallDisplayName": "AIDis",
+      "installerIcon": "assets/aidis.ico",
+      "uninstallerIcon": "assets/aidis.ico",
+      "installerHeaderIcon": "assets/aidis.ico",
+      "multiLanguageInstaller": true,
+      "installerLanguages": [
+        "ru_RU",
+        "en_US"
+      ],
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "OWNER",
+        "repo": "AIDis",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "uiohook-napi": "^1.5.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.1",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "playwright-core": "^1.63.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.3"
+  }
+}

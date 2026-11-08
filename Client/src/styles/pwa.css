@@ -1,0 +1,137 @@
+/* ==== 0.5.9: iPhone / iPad (Safari and the home-screen app) ==================================
+   html.is-ios        any iPhone / iPad browser session of the web client
+   html.is-standalone opened from the home screen (full screen, status bar over the app)
+   html.keyboard-open the on-screen keyboard is up (see pwa/webApp.ts)
+   --app-height / --app-top: the part of the screen that is really visible (iOS does not shrink the
+   page for the keyboard, it pans it). */
+
+html.is-ios,
+html.is-ios body {
+  height: 100%;
+}
+
+html.is-ios body {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--app-top, 0px);
+  height: var(--app-height, 100%);
+  box-sizing: border-box;
+  /* Notch / Dynamic Island and the rounded corners in landscape. Bottom: the composer, the voice
+     controls, drawers and sheets pad themselves with env(safe-area-inset-bottom). */
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* No iOS text magnifier / copy menu on buttons and navigation (messages stay selectable). */
+html.is-ios button,
+html.is-ios .channel-link,
+html.is-ios .icon-btn,
+html.is-ios .rail-dock,
+html.is-ios .voice-controls {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* iOS zooms into any text field under 16 px on focus. */
+html.is-ios input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.is-ios textarea,
+html.is-ios select {
+  font-size: 16px;
+}
+
+/* Touch: hover-only affordances are always visible, targets are at least 40 px (as on Android). */
+html.is-ios .icon-btn,
+html.is-ios .stream-btn {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+html.is-ios .voice-chat-link {
+  opacity: 1;
+}
+
+/* Smooth momentum scrolling in every scroll area. */
+html.is-ios .message-scroll,
+html.is-ios .settings-panel,
+html.is-ios .modal-body,
+html.is-ios .games-body {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* iOS cannot share the screen (no getDisplayMedia): no entry points for it. */
+html.is-ios .control-share,
+html.is-ios .share-banner .btn-secondary {
+  display: none;
+}
+
+/* Keyboard up: the home indicator is hidden behind it, so no extra gap above the keyboard. */
+html.is-ios.keyboard-open .chat-footer,
+html.is-ios.keyboard-open .voice-controls,
+html.is-ios.keyboard-open .modal-footer,
+html.is-ios.keyboard-open .rail-dock {
+  padding-bottom: 0;
+}
+
+/* Prompts and toasts stay clear of the Dynamic Island / status bar and the home indicator. */
+html.is-ios .toasts {
+  top: calc(60px + env(safe-area-inset-top, 0px));
+}
+
+html.is-ios .game-prompt {
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Full-screen stream on iPhone: the video uses the whole display, controls stay inside safe areas. */
+html.is-ios .stream-shell.is-fullscreen {
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+
+/* Home-screen app: the status bar is drawn over the app, so the top bar gets the app's color. */
+html.is-standalone body {
+  background: var(--bg-app);
+}
+
+/* iPad in landscape with a keyboard / trackpad: keep the desktop layout, just touch-friendly. */
+@media (min-width: 761px) {
+  html.is-ios .channel-link {
+    min-height: 36px;
+  }
+}
+
+/* ---- install hint (Safari on iPhone / iPad, not installed yet) ---- */
+.install-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 12px 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  font-size: var(--text-sm);
+}
+
+.install-hint-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  flex: none;
+}
+
+.install-hint-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.install-hint-glyph {
+  vertical-align: -2px;
+  color: var(--accent);
+}

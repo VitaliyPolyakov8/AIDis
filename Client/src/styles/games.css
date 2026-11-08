@@ -1,0 +1,133 @@
+/* ---- game tracker ---------------------------------------------------------------------------- */
+
+.game-cover-img {
+  display: block;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.game-shelf-art.game-cover-img {
+  width: 100%;
+  aspect-ratio: 231 / 87;
+}
+
+.game-shelf-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  min-width: 0;
+}
+
+.tracker-status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.my-games-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.my-games-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.my-games-item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-elevated, rgba(255, 255, 255, 0.03));
+}
+
+.my-games-art.game-art,
+.my-games-art.game-cover-img {
+  width: 72px;
+  height: auto;
+  aspect-ratio: 231 / 87;
+  border-radius: 4px;
+}
+
+.my-games-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .my-games-item {
+    grid-template-columns: 56px minmax(0, 1fr) auto auto;
+  }
+  .my-games-item .field-hint {
+    display: none;
+  }
+}
+
+.game-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-dialog-cover {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.game-dialog-art.game-art,
+.game-dialog-art.game-cover-img {
+  width: 140px;
+  aspect-ratio: 231 / 87;
+  height: auto;
+  border-radius: 6px;
+}
+
+.game-dialog-cover-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.game-prompt-art.game-art,
+.game-prompt-art.game-cover-img {
+  width: 92px;
+  aspect-ratio: 231 / 87;
+  height: auto;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* Settings → App: servers this desktop app knows. */
+.server-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.server-current {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Desktop app: the "no server of your own?" line under the address form. */
+.connect-hint {
+  margin-top: 16px;
+}

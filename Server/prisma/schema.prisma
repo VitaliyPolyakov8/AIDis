@@ -1,0 +1,688 @@
+// AIDis database schema.
+// The connection URL lives in prisma.config.ts (DATABASE_URL), not here.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+/// The status a user picked (0.3.0). What others see is derived from it plus live connections.
+enum PresenceStatus {
+  ONLINE
+  AWAY
+  DND
+  INVISIBLE
+}
+
+enum ChannelType {
+  TEXT
+  VOICE
+  /// 0.4.0: a direct message (1:1) or group DM. Only its members can see it.
+  DM
+  /// 0.7.0: a category grouping a server's channels (its overwrites apply to synced children).
+  CATEGORY
+}
+
+/// 0.7.0: who a channel permission overwrite targets.
+enum OverwriteTarget {
+  ROLE
+  MEMBER
+}
+
+/// 0.7.0: what a limit exception applies to.
+enum LimitScope {
+  GUILD
+  USER
+}
+
+/// 0.4.0: per-user, per-channel notification preference.
+/// Game tracker statuses (HUNDRED = completed 100%).
+enum GameStatus {
+  PLAYING
+  COMPLETED
+  HUNDRED
+  DROPPED
+  PAUSED
+}
+
+enum GamePlatform {
+  PC
+  PLAYSTATION
+  XBOX
+  SWITCH
+  MOBILE
+  OTHER
+}
+
+enum NotifyMode {
+  ALL
+  MENTIONS
+  NONE
+}
+
+model User {
+  id                    String         @id @default(uuid()) @db.Uuid
+  /// Username as typed by the administrator (display casing preserved).
+  username              String         @db.VarChar(32)
+  /// Lower-cased username, used for unique lookups so "Alex" and "alex" cannot coexist.
+  usernameNormalized    String         @unique @map("username_normalized") @db.VarChar(32)
+  displayName           String         @map("display_name") @db.VarChar(64)
+  passwordHash          String         @map("password_hash")
+  role                  Role           @default(USER)
+  disabled              Boolean        @default(false)
+  avatarAttachmentId    String?        @map("avatar_attachment_id") @db.Uuid
+  createdAt             DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lastSeenAt            DateTime?      @map("last_seen_at") @db.Timestamptz(3)
+  /// Status chosen by the user (Online / Away / Do Not Disturb / Invisible). Not localized.
+  presenceStatus        PresenceStatus @default(ONLINE) @map("presence_status")
+  /// Free-text custom status ("Working", "Back at 8"); null = none.
+  customStatusText      String?        @map("custom_status_text") @db.VarChar(128)
+  /// When the custom status disappears by itself; null = never.
+  customStatusExpiresAt DateTime?      @map("custom_status_expires_at") @db.Timestamptz(3)
+  /// 0.4.0: one emoji shown before the custom status.
+  customStatusEmoji     String?        @map("custom_status_emoji") @db.VarChar(16)
+  /// 0.4.0 profile: banner image, accent color (#rrggbb), decorative frame id, a few tags / favorite games.
+  bannerAttachmentId    String?        @map("banner_attachment_id") @db.Uuid
+  accentColor           String?        @map("accent_color") @db.VarChar(7)
+  profileFrame          String?        @map("profile_frame") @db.VarChar(32)
+  profileTags           String[]       @default([]) @map("profile_tags")
+  /// 0.5.0: color of the user's own name (#rrggbb, readable on the dark UI; null = default).
+  nicknameColor         String?        @map("nickname_color") @db.VarChar(7)
+  /// 0.5.1: built-in animated profile banner / avatar frame (catalog ids only, see users/cosmetics.ts).
+  profileBannerId       String?        @map("profile_banner_id") @db.VarChar(32)
+  avatarFrameId         String?        @map("avatar_frame_id") @db.VarChar(32)
+  /// 0.5.5: second profile theme color (gradient accentColor -> accentColor2), #rrggbb or null.
+  accentColor2          String?        @map("accent_color_2") @db.VarChar(7)
+  /// 0.5.5 name style: gradient end color, glow, font id (users/name-styles.ts). Null/false = plain.
+  nicknameColor2        String?        @map("nickname_color_2") @db.VarChar(7)
+  nicknameGlow          Boolean        @default(false) @map("nickname_glow")
+  nicknameFont          String?        @map("nickname_font") @db.VarChar(24)
+  /// 0.5.5: birthday without the year (confetti on that day). Both null = not set.
+  birthdayMonth         Int?           @map("birthday_month") @db.SmallInt
+  birthdayDay           Int?           @map("birthday_day") @db.SmallInt
+  /// 0.5.5: show the "Recently played" shelf on the profile.
+  showRecentGames       Boolean        @default(true) @map("show_recent_games")
+  /// 0.7.0: "About me" (global; a server profile can override it).
+  bio                   String?        @db.VarChar(190)
+  /// 0.7.1: lower-cased e-mail (self-registration, password reset); null = none.
+  email                 String?        @unique @db.VarChar(254)
+  emailVerifiedAt       DateTime?      @map("email_verified_at") @db.Timestamptz(3)
+  /// 0.7.1: registered but the e-mail is not confirmed yet (cannot log in; removed after 7 days).
+  pendingVerification   Boolean        @default(false) @map("pending_verification")
+
+  avatar             Attachment?     @relation("UserAvatar", fields: [avatarAttachmentId], references: [id], onDelete: SetNull)
+  banner             Attachment?     @relation("UserBanner", fields: [bannerAttachmentId], references: [id], onDelete: SetNull)
+  sessions           Session[]
+  messages           Message[]
+  attachments        Attachment[]    @relation("AttachmentUploader")
+  ownedGuilds        Guild[]         @relation("GuildOwner")
+  guildMemberships   GuildMember[]
+  friendshipsA       Friendship[]    @relation("FriendA")
+  friendshipsB       Friendship[]    @relation("FriendB")
+  friendRequestsSent FriendRequest[] @relation("FriendRequestFrom")
+  friendRequestsGot  FriendRequest[] @relation("FriendRequestTo")
+  badges             UserBadge[]
+  reactions          Reaction[]
+  channelReads       ChannelRead[]
+  channelMemberships ChannelMember[]
+  games              UserGame[]
+  serverEmojis       ServerEmoji[]
+  emailTokens        EmailToken[]
+  serverSounds       ServerSound[]
+
+  @@map("users")
+}
+
+/// One row per logged-in device (browser, desktop app, phone).
+/// The refresh token itself is never stored, only its SHA-256 hash.
+model Session {
+  id                String    @id @default(uuid()) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  refreshTokenHash  String    @unique @map("refresh_token_hash") @db.VarChar(64)
+  /// Hash of the token that was valid before the last rotation; used to detect token reuse.
+  previousTokenHash String?   @map("previous_token_hash") @db.VarChar(64)
+  clientType        String    @default("unknown") @map("client_type") @db.VarChar(16)
+  deviceName        String?   @map("device_name") @db.VarChar(100)
+  userAgent         String?   @map("user_agent") @db.VarChar(300)
+  ipAddress         String?   @map("ip_address") @db.VarChar(64)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastUsedAt        DateTime  @default(now()) @map("last_used_at") @db.Timestamptz(3)
+  expiresAt         DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt         DateTime? @map("revoked_at") @db.Timestamptz(3)
+  revokedReason     String?   @map("revoked_reason") @db.VarChar(32)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+/// Channels: categories, text and voice channels of a server (guildId), or DMs (guildId null).
+model Channel {
+  id                String      @id @default(uuid()) @db.Uuid
+  type              ChannelType
+  name              String      @db.VarChar(64)
+  description       String?     @db.VarChar(300)
+  position          Int         @default(0)
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  /// 0.7.0: the server this channel belongs to (null = DM).
+  guildId           String?     @map("guild_id") @db.Uuid
+  /// 0.7.0: category (a CATEGORY channel of the same server), null = top level.
+  parentId          String?     @map("parent_id") @db.Uuid
+  /// 0.7.0: true = uses the category's permission overwrites instead of its own.
+  permissionsSynced Boolean     @default(true) @map("permissions_synced")
+  /// 0.4.0: default channels that cannot be deleted from the UI.
+  protected         Boolean     @default(false)
+  /// 0.4.0 group DM: optional name (null = the members' names). DMs use an internal unique `name`.
+  title             String?     @db.VarChar(64)
+  /// 0.4.0 DM: who opened it.
+  ownerId           String?     @map("owner_id") @db.Uuid
+  /// 0.4.0 1:1 DM: "<smaller user id>:<larger user id>", so a pair always reuses one DM.
+  dmKey             String?     @unique @map("dm_key") @db.VarChar(80)
+  /// 0.4.0: newest message time (DM list ordering).
+  lastMessageAt     DateTime?   @map("last_message_at") @db.Timestamptz(3)
+  /// 0.5.5 voice channel settings: microphone bitrate for everyone (kbps, null = default 64) and
+  /// layout ("standard" grid or "room": a 2D room with proximity voice).
+  voiceBitrate      Int?        @map("voice_bitrate") @db.SmallInt
+  voiceLayout       String      @default("standard") @map("voice_layout") @db.VarChar(16)
+  /// 0.7.1: the extra voice server (LiveKit node) of this voice channel; null = the main one from .env.
+  voiceNodeId       String?     @map("voice_node_id") @db.Uuid
+
+  guild      Guild?                @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  voiceNode  VoiceNode?            @relation(fields: [voiceNodeId], references: [id], onDelete: SetNull)
+  parent     Channel?              @relation("ChannelParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children   Channel[]             @relation("ChannelParent")
+  messages   Message[]
+  members    ChannelMember[]
+  reads      ChannelRead[]
+  overwrites PermissionOverwrite[]
+  invites    Invite[]
+
+  @@index([guildId, position])
+  @@index([type, position])
+  @@map("channels")
+}
+
+model Message {
+  id         String    @id @default(uuid()) @db.Uuid
+  channelId  String    @map("channel_id") @db.Uuid
+  authorId   String    @map("author_id") @db.Uuid
+  /// Plain text (may contain markdown). Never rendered as HTML by the server.
+  content    String
+  /// Optional client-generated id used to make sends idempotent across reconnects/retries.
+  nonce      String?   @db.VarChar(64)
+  /// Future: replies. Nullable self-reference, already usable.
+  replyToId  String?   @map("reply_to_id") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  /// Set when the content was edited by its author (drives the "edited" indicator).
+  editedAt   DateTime? @map("edited_at") @db.Timestamptz(3)
+  /// Soft delete marker. Deleted messages are hidden from history.
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(3)
+  /// 0.3.1: link preview cards and GIFs (see src/embeds/embeds.ts). Null = none.
+  embeds     Json?
+  /// 0.4.0: user ids mentioned with @username (stable ids, not names).
+  mentions   String[]  @default([]) @db.Uuid
+  /// 0.4.0: pinned to the channel.
+  pinnedAt   DateTime? @map("pinned_at") @db.Timestamptz(3)
+  pinnedById String?   @map("pinned_by_id") @db.Uuid
+  /// 0.5.2: read aloud (text-to-speech) to the people in the voice call. Voice channel chats and DMs only.
+  tts        Boolean   @default(false)
+
+  channel     Channel      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  replyTo     Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies     Message[]    @relation("MessageReplies")
+  attachments Attachment[]
+  reactions   Reaction[]
+
+  @@unique([authorId, nonce])
+  @@index([channelId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([channelId, pinnedAt])
+  @@map("messages")
+}
+
+/// 0.4.0: emoji reactions. `emoji` is a Unicode emoji; custom emoji can later use "custom:<id>".
+model Reaction {
+  id        String   @id @default(uuid()) @db.Uuid
+  messageId String   @map("message_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  emoji     String   @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@map("reactions")
+}
+
+/// 0.4.0: members of a DM (0.7.0: DMs only; server channels use permission overwrites).
+model ChannelMember {
+  channelId String   @map("channel_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  addedAt   DateTime @default(now()) @map("added_at") @db.Timestamptz(3)
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([channelId, userId])
+  @@index([userId])
+  @@map("channel_members")
+}
+
+/// 0.4.0: what a user has read in a channel and how they want to be notified about it.
+model ChannelRead {
+  userId     String      @map("user_id") @db.Uuid
+  channelId  String      @map("channel_id") @db.Uuid
+  lastReadAt DateTime    @map("last_read_at") @db.Timestamptz(3)
+  notifyMode NotifyMode? @map("notify_mode")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@id([userId, channelId])
+  @@map("channel_reads")
+}
+
+/// Roles of a server (0.7.0). Each server has one built-in "everyone" role (key "everyone",
+/// position 0) that applies to all its members. Higher position = higher in the hierarchy.
+model RoleDef {
+  id          String   @id @default(uuid()) @db.Uuid
+  guildId     String   @map("guild_id") @db.Uuid
+  /// "everyone" for the built-in role; null for normal roles.
+  key         String?  @db.VarChar(32)
+  name        String   @db.VarChar(32)
+  color       String?  @db.VarChar(7)
+  position    Int      @default(0)
+  permissions String[] @default([])
+  /// 0.7.0: shown as its own group in the member list / can be @mentioned.
+  hoist       Boolean  @default(false)
+  mentionable Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  guild   Guild             @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  members GuildMemberRole[]
+
+  @@unique([guildId, key])
+  @@index([guildId, position])
+  @@map("roles")
+}
+
+/// 0.7.0: a server.
+model Guild {
+  id                 String     @id @default(uuid()) @db.Uuid
+  name               String     @db.VarChar(100)
+  iconAttachmentId   String?    @map("icon_attachment_id") @db.Uuid
+  bannerAttachmentId String?    @map("banner_attachment_id") @db.Uuid
+  ownerId            String     @map("owner_id") @db.Uuid
+  /// Text channel for "X joined the server" messages (null = none).
+  systemChannelId    String?    @map("system_channel_id") @db.Uuid
+  defaultNotifyMode  NotifyMode @default(ALL) @map("default_notify_mode")
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  owner    User          @relation("GuildOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  icon     Attachment?   @relation("GuildIcon", fields: [iconAttachmentId], references: [id], onDelete: SetNull)
+  banner   Attachment?   @relation("GuildBanner", fields: [bannerAttachmentId], references: [id], onDelete: SetNull)
+  members  GuildMember[]
+  roles    RoleDef[]
+  channels Channel[]
+  invites  Invite[]
+  bans     GuildBan[]
+  emojis   ServerEmoji[]
+  sounds   ServerSound[]
+
+  voiceNodes VoiceNodeGuild[]
+
+  @@map("guilds")
+}
+
+/// 0.7.0: a user's membership in a server, with their server profile (null fields = global profile).
+model GuildMember {
+  guildId            String      @map("guild_id") @db.Uuid
+  userId             String      @map("user_id") @db.Uuid
+  joinedAt           DateTime    @default(now()) @map("joined_at") @db.Timestamptz(3)
+  nickname           String?     @db.VarChar(32)
+  avatarAttachmentId String?     @map("avatar_attachment_id") @db.Uuid
+  bannerAttachmentId String?     @map("banner_attachment_id") @db.Uuid
+  bio                String?     @db.VarChar(190)
+  /// Notification level for the whole server (null = the server default).
+  notifyMode         NotifyMode? @map("notify_mode")
+  /// Order of this server in the user's server list (null = by join time).
+  railPosition       Int?        @map("rail_position")
+
+  guild  Guild             @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  user   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar Attachment?       @relation("MemberAvatar", fields: [avatarAttachmentId], references: [id], onDelete: SetNull)
+  banner Attachment?       @relation("MemberBanner", fields: [bannerAttachmentId], references: [id], onDelete: SetNull)
+  roles  GuildMemberRole[]
+
+  @@id([guildId, userId])
+  @@index([userId])
+  @@map("guild_members")
+}
+
+model GuildMemberRole {
+  guildId String @map("guild_id") @db.Uuid
+  userId  String @map("user_id") @db.Uuid
+  roleId  String @map("role_id") @db.Uuid
+
+  member GuildMember @relation(fields: [guildId, userId], references: [guildId, userId], onDelete: Cascade)
+  role   RoleDef     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([guildId, userId, roleId])
+  @@index([roleId])
+  @@map("guild_member_roles")
+}
+
+/// 0.7.0: an invite code (lower-case, see invites/code.ts).
+model Invite {
+  code      String    @id @db.VarChar(16)
+  guildId   String    @map("guild_id") @db.Uuid
+  /// Channel to open after joining (null = the server's default).
+  channelId String?   @map("channel_id") @db.Uuid
+  creatorId String    @map("creator_id") @db.Uuid
+  /// null = unlimited.
+  maxUses   Int?      @map("max_uses")
+  uses      Int       @default(0)
+  /// null = never expires.
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(3)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  guild   Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  channel Channel? @relation(fields: [channelId], references: [id], onDelete: SetNull)
+
+  @@index([guildId])
+  @@map("invites")
+}
+
+model GuildBan {
+  guildId    String   @map("guild_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  reason     String?  @db.VarChar(300)
+  bannedById String   @map("banned_by_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@id([guildId, userId])
+  @@map("guild_bans")
+}
+
+/// 0.7.0: allow / deny of channel-scoped permissions for a role or a member on one channel or category.
+model PermissionOverwrite {
+  channelId  String          @map("channel_id") @db.Uuid
+  targetType OverwriteTarget @map("target_type")
+  targetId   String          @map("target_id") @db.Uuid
+  allow      String[]        @default([])
+  deny       String[]        @default([])
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@id([channelId, targetType, targetId])
+  @@map("permission_overwrites")
+}
+
+/// 0.7.0: mutual friendship; userAId is always the smaller id.
+model Friendship {
+  userAId   String   @map("user_a_id") @db.Uuid
+  userBId   String   @map("user_b_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  userA User @relation("FriendA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("FriendB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@id([userAId, userBId])
+  @@index([userBId])
+  @@map("friendships")
+}
+
+model FriendRequest {
+  fromId    String   @map("from_id") @db.Uuid
+  toId      String   @map("to_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  from User @relation("FriendRequestFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   User @relation("FriendRequestTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@id([fromId, toId])
+  @@index([toId])
+  @@map("friend_requests")
+}
+
+/// 0.7.0: a superadmin exception to a global limit, for one server or one user.
+model LimitOverride {
+  key      String     @db.VarChar(48)
+  scope    LimitScope
+  targetId String     @map("target_id") @db.Uuid
+  value    Int
+
+  @@id([key, scope, targetId])
+  @@map("limit_overrides")
+}
+
+/// 0.4.0: simple internal badges (Admin, Developer, Founder, Tester), defined on the server.
+model Badge {
+  id       String @id @default(uuid()) @db.Uuid
+  key      String @unique @db.VarChar(32)
+  label    String @db.VarChar(32)
+  /// Icon name the client knows (shield, code, crown, flask).
+  icon     String @db.VarChar(32)
+  color    String @db.VarChar(7)
+  position Int    @default(0)
+
+  users UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  userId  String @map("user_id") @db.Uuid
+  badgeId String @map("badge_id") @db.Uuid
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+  @@map("user_badges")
+}
+
+/// 0.4.0: important admin actions (who did what to what, when).
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  /// 0.7.0: the server the action happened in (null = instance-wide superadmin action).
+  guildId    String?  @map("guild_id") @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String   @db.VarChar(48)
+  targetType String?  @map("target_type") @db.VarChar(24)
+  targetId   String?  @map("target_id") @db.VarChar(64)
+  /// Short details (names, from / to); never secrets.
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([guildId, createdAt(sort: Desc)])
+  @@map("audit_log")
+}
+
+/// Uploaded file metadata. Files live on disk under UPLOAD_DIRECTORY with a generated name.
+model Attachment {
+  id           String   @id @default(uuid()) @db.Uuid
+  uploaderId   String   @map("uploader_id") @db.Uuid
+  /// Message the file is attached to (null until it is sent with a message).
+  messageId    String?  @map("message_id") @db.Uuid
+  /// Sanitised original filename, for display and Content-Disposition only. Never used as a path.
+  originalName String   @map("original_name") @db.VarChar(255)
+  /// Server-generated filename inside UPLOAD_DIRECTORY.
+  storedName   String   @unique @map("stored_name") @db.VarChar(80)
+  mimeType     String   @map("mime_type") @db.VarChar(127)
+  size         BigInt
+  sha256       String   @db.VarChar(64)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  uploader       User          @relation("AttachmentUploader", fields: [uploaderId], references: [id], onDelete: Restrict)
+  message        Message?      @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  avatarOf       User[]        @relation("UserAvatar")
+  bannerOf       User[]        @relation("UserBanner")
+  guildIconOf    Guild[]       @relation("GuildIcon")
+  guildBannerOf  Guild[]       @relation("GuildBanner")
+  memberAvatarOf GuildMember[] @relation("MemberAvatar")
+  memberBannerOf GuildMember[] @relation("MemberBanner")
+
+  @@index([messageId])
+  @@index([uploaderId])
+  @@map("attachments")
+}
+
+/// 0.6.1: custom emoji of a server (0.7.0: per server, usable by its members everywhere).
+model ServerEmoji {
+  id          String   @id @default(uuid()) @db.Uuid
+  guildId     String   @map("guild_id") @db.Uuid
+  name        String   @db.VarChar(32)
+  /// Unique slots 0..limit-1 per server enforce the emoji limit even with concurrent writers.
+  slot        Int      @db.SmallInt
+  storedName  String   @unique @map("stored_name") @db.VarChar(80)
+  mimeType    String   @map("mime_type") @db.VarChar(32)
+  size        Int
+  width       Int      @db.SmallInt
+  height      Int      @db.SmallInt
+  animated    Boolean  @default(false)
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  createdBy User  @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  guild     Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, name])
+  @@unique([guildId, slot])
+  @@map("server_emojis")
+}
+
+/// 0.5.5 "Recently played": one row per user and game, from the desktop game activity.
+model UserGame {
+  id                String       @id @default(uuid()) @db.Uuid
+  userId            String       @map("user_id") @db.Uuid
+  /// Lower-cased game name (one row per game even when the Steam id is unknown).
+  gameKey           String       @map("game_key") @db.VarChar(160)
+  name              String       @db.VarChar(128)
+  steamAppId        Int?         @map("steam_app_id")
+  firstPlayedAt     DateTime     @default(now()) @map("first_played_at") @db.Timestamptz(3)
+  lastPlayedAt      DateTime     @default(now()) @map("last_played_at") @db.Timestamptz(3)
+  /// Finished sessions only (the running one is added when it ends).
+  totalSeconds      Int          @default(0) @map("total_seconds")
+  sessions          Int          @default(0)
+  /// Game tracker: status, platform, added by hand or seen on the PC, own cover, last "how did it end?".
+  status            GameStatus   @default(PLAYING)
+  platform          GamePlatform @default(PC)
+  manual            Boolean      @default(false)
+  coverAttachmentId String?      @map("cover_attachment_id") @db.Uuid
+  statusChangedAt   DateTime?    @map("status_changed_at") @db.Timestamptz(3)
+  promptedAt        DateTime?    @map("prompted_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameKey])
+  @@index([userId, lastPlayedAt(sort: Desc)])
+  @@map("user_games")
+}
+
+/// 0.5.8: small settings changed from the admin panel (announcement banner, game news channel).
+model AppSetting {
+  key       String   @id @db.VarChar(64)
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("app_settings")
+}
+
+/// 0.7.1: an extra voice server (a LiveKit on a VPS, a subdomain of VOICE_NODE_DOMAIN). The main
+/// LiveKit stays in .env and is not stored here. The API secret is sealed (common/secret-box.ts).
+model VoiceNode {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String    @db.VarChar(64)
+  url             String    @unique @db.VarChar(255)
+  apiKey          String    @map("api_key") @db.VarChar(128)
+  apiSecretSealed String    @map("api_secret_sealed") @db.Text
+  enabled         Boolean   @default(true)
+  lastCheckAt     DateTime? @map("last_check_at") @db.Timestamptz(3)
+  /// 'ok' | 'unreachable' | 'unauthorized'
+  lastCheckStatus String?   @map("last_check_status") @db.VarChar(16)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  guilds   VoiceNodeGuild[]
+  channels Channel[]
+
+  @@map("voice_nodes")
+}
+
+/// 0.7.1: which servers may put their voice channels on a node (none by default).
+model VoiceNodeGuild {
+  nodeId  String @map("node_id") @db.Uuid
+  guildId String @map("guild_id") @db.Uuid
+
+  node  VoiceNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  guild Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@id([nodeId, guildId])
+  @@index([guildId])
+  @@map("voice_node_guilds")
+}
+
+/// 0.7.1 one-time links sent by e-mail (confirm registration, reset password, confirm a new e-mail).
+/// Only SHA-256 of the token is stored.
+model EmailToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  /// 'verify' | 'reset' | 'email-change'
+  purpose    String    @db.VarChar(16)
+  tokenHash  String    @unique @map("token_hash") @db.Char(64)
+  newEmail   String?   @map("new_email") @db.VarChar(254)
+  inviteCode String?   @map("invite_code") @db.VarChar(16)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt     DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_tokens")
+}
+
+/// 0.7.1 a server's soundboard sound (MP3 / OGG / WAV, at most 5 s and 512 KiB).
+model ServerSound {
+  id          String   @id @default(uuid()) @db.Uuid
+  guildId     String   @map("guild_id") @db.Uuid
+  name        String   @db.VarChar(32)
+  emoji       String?  @db.VarChar(16)
+  /// 0..100, multiplied by each listener's own soundboard volume.
+  volume      Int      @default(100) @db.SmallInt
+  /// Unique slots 0..limit-1 per server enforce the guild.sounds limit (as for emojis).
+  slot        Int      @db.SmallInt
+  storedName  String   @unique @map("stored_name") @db.VarChar(80)
+  mimeType    String   @map("mime_type") @db.VarChar(32)
+  size        Int
+  durationMs  Int      @map("duration_ms")
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  createdBy User  @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  guild     Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, name])
+  @@unique([guildId, slot])
+  @@map("server_sounds")
+}

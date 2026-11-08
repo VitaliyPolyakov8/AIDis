@@ -1,0 +1,12 @@
+.server-emoji{display:inline-block;width:24px;height:24px;object-fit:contain;vertical-align:middle;margin:0 2px}
+.emoji-cell .server-emoji{width:30px;height:30px;margin:0}.reaction-emoji .server-emoji{width:20px;height:20px;margin:0}
+.server-emoji-fallback{font-size:inherit;overflow-wrap:anywhere}.emoji-cell .server-emoji-fallback{font-size:10px;line-height:1.15}
+.emoji-server-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;color:var(--text-muted);font-size:12px}
+.emoji-server-tools button{font-size:12px}
+.server-emojis-settings{display:flex;flex-direction:column;gap:16px}
+.server-emoji-upload{display:flex;flex-direction:column;gap:10px;padding:14px;background:var(--bg-rail);border:1px solid var(--border);border-radius:var(--radius)}
+.server-emoji-upload label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--text-soft)}
+.server-emoji-upload input[type=file]{max-width:100%;font-size:12px}.server-emoji-preview{display:flex;align-items:center;gap:12px}.server-emoji-preview img{width:48px;height:48px;object-fit:contain}
+.server-emoji-list{display:flex;flex-direction:column;gap:5px}.server-emoji-row{display:flex;align-items:center;gap:10px;min-height:44px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.server-emoji-row>span:first-child{display:flex;align-items:center;justify-content:center;min-width:32px}.server-emoji-name{flex:1;min-width:0;overflow-wrap:anywhere;font-size:13px}.server-emoji-row .input{flex:1;min-width:60px}
+.server-emoji-row .icon-btn{flex-shrink:0}.server-emoji-counter{font-size:12px;color:var(--text-muted)}

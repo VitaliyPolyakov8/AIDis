@@ -1,0 +1,264 @@
+/* =====================================================================================
+   AIDis 0.4.5 — Watch Stream, multi-stream stage, pop-out windows.
+   ===================================================================================== */
+
+/* ---- multi-stream stage: 1 = full, 2 = side by side, 3-4 = grid, focus = big + strip ---- */
+
+.stream-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  gap: 6px;
+  padding: 6px;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.stream-grid.count-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.stream-grid.count-3,
+.stream-grid.count-4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.stream-grid.count-3 > .stream-tile:first-child {
+  grid-column: 1 / -1;
+}
+
+/* Focused: large on top, the others in a row of small tiles below. */
+.stream-grid.has-focus {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr 22%;
+}
+
+.stream-grid.has-focus > .stream-tile.is-focused {
+  grid-column: 1 / -1;
+}
+
+.stream-grid.count-1 {
+  padding: 0;
+}
+
+.stream-tile {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #0b0c0f;
+  outline: 0;
+  cursor: default;
+}
+
+.stream-grid:not(.count-1) > .stream-tile {
+  cursor: pointer;
+}
+
+.stream-grid.count-1 > .stream-tile {
+  border-radius: 0;
+  outline: 0;
+}
+
+/* Small tiles: compact chrome. */
+.stream-grid.has-focus > .stream-tile:not(.is-focused) .stream-topbar {
+  padding: 6px 6px 18px 8px;
+}
+
+.stream-grid.has-focus > .stream-tile:not(.is-focused) .stream-tile-volume,
+.stream-grid.has-focus > .stream-tile:not(.is-focused) .stream-presenter-title {
+  display: none;
+}
+
+.stream-presenter-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.stream-tile-volume {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+}
+
+/* The shared bottom bar sits above the tile volumes. */
+.stream-view > .stream-bottom {
+  z-index: 3;
+}
+
+.stream-grid.count-1 ~ .stream-bottom {
+  padding-left: 230px;
+}
+
+.stream-tile-volume .stream-volume {
+  padding: 4px 8px 4px 4px;
+  border-radius: 10px;
+  background: rgba(16, 18, 24, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.stream-popped-notice {
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- "Watch Stream" on participant tiles ---------------------------------------------- */
+
+.watch-stream {
+  margin-top: 4px;
+  max-width: 100%;
+}
+
+.watch-stream-title {
+  max-width: 140px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.watch-stream.is-watching {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.share-switcher .share-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---- pop-out window -------------------------------------------------------------------- */
+
+html.is-popout,
+html.is-popout body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+.stream-popout-root,
+.stream-popout {
+  position: fixed;
+  inset: 0;
+}
+
+.stream-popout .stream-tile {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  outline: 0;
+}
+
+.stream-popout-bar {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgba(16, 18, 24, 0.78);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.stream-popout:hover .stream-popout-bar,
+.stream-popout:focus-within .stream-popout-bar {
+  opacity: 1;
+}
+
+/* ---- 0.4.7: member rows with the game on its own full-width row ------------------------------
+   Row 1: avatar | name, badges, voice icon (icons never shrink; the name ellipsizes first).
+   Row 2: the game, from the button's left edge to its right edge (under the avatar too).
+   0.4.6 kept the game inside the text column next to the avatar (~156 px at 1920 px): normal names
+   such as "PowerWash Simulator 2" only just fit, and only without the "Playing" prefix. Spanning the
+   whole row gives it the 42 px of the avatar column back (~200 px), enough for "Playing <name>". */
+.member-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 3px;
+  align-items: center;
+}
+
+.member-text {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 1px;
+  min-width: 0;
+}
+
+.member-name > :not(.member-name-text) {
+  flex-shrink: 0;
+}
+
+.member-activity {
+  grid-column: 1 / -1;
+  display: flex;
+  min-width: 0;
+}
+
+.member-activity .activity-pill.is-compact {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+.member-activity .activity-pill.is-compact svg {
+  flex-shrink: 0;
+}
+
+.activity-pill-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--game-accent);
+  font-weight: 650;
+}
+
+.activity-pill-prefix {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.activity-pill-name-inner {
+  display: inline;
+}
+
+/* Hover: a long name slides once to its end (and back on leave). Only when it does not fit. */
+@media (prefers-reduced-motion: no-preference) {
+  .member-button:hover .activity-pill.can-reveal .activity-pill-name {
+    text-overflow: clip;
+  }
+
+  .member-button:hover .activity-pill.can-reveal .activity-pill-name-inner {
+    display: inline-block;
+    transform: translateX(var(--reveal));
+    transition: transform var(--reveal-ms) ease-in-out 0.35s;
+  }
+}
+
+/* 0.4.7 stream statistics: the fallback reason stands out. */
+.stream-stats-fallback {
+  color: var(--warn);
+}

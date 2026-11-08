@@ -1,0 +1,16 @@
+# Dependencies, build output, caches
+node_modules/
+coverage/
+.vitest-cache/
+*.log
+
+# Secrets and per-installation files are ignored in Server/.gitignore
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

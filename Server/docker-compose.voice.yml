@@ -1,0 +1,21 @@
+# Optional local CPU transcription. No new host ports or external audio endpoints.
+# See voice-worker/README.md. Prepared only; do not deploy without normal release review.
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: voice-worker/Dockerfile
+      args:
+        BACKEND_IMAGE: ${COMPOSE_PROJECT_NAME:-aidis}-backend:latest
+    image: ${COMPOSE_PROJECT_NAME:-aidis}-backend-voice:latest
+    volumes:
+      - ${VOICE_MODEL_DIRECTORY:?set VOICE_MODEL_DIRECTORY to an existing local small-model directory}:/opt/voice-model:ro
+    environment:
+      VOICE_TRANSCRIBE_PYTHON: /opt/voice-venv/bin/python
+      VOICE_TRANSCRIBE_SCRIPT: /opt/voice-worker/worker.py
+      VOICE_TRANSCRIBE_MODEL: /opt/voice-model
+    deploy:
+      resources:
+        limits:
+          cpus: '3.0'
+          memory: 4g

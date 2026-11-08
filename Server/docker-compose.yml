@@ -1,0 +1,167 @@
+# AIDis production stack: backend + PostgreSQL + LiveKit.
+#
+# All host-side ports come from .env, so nothing here assumes a port is free.
+# Nothing here binds host ports 80/443: HTTPS is served by Caddy (docker-compose.caddy.yml) or by
+# the nginx of the VPS, both proxying to the localhost-only ports published below.
+# deploy/setup.sh writes .env (COMPOSE_FILE / COMPOSE_PROFILES choose Caddy and voice).
+#
+#   docker compose config      # validate after editing .env
+#   docker compose up -d       # start
+#   docker compose down        # stop (named volumes are KEPT; never add -v)
+
+name: ${COMPOSE_PROJECT_NAME:-aidis}
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:17-alpine}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # No "ports:" on purpose: PostgreSQL is reachable only on the internal Docker network.
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    shm_size: 128mb
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    logging: &default-logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build:
+      context: .
+    image: ${COMPOSE_PROJECT_NAME:-aidis}-backend:latest
+    restart: unless-stopped
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?set PUBLIC_BASE_URL in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS in .env}
+      TRUST_PROXY: ${TRUST_PROXY:-loopback,uniquelocal}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env}
+      ACCESS_TOKEN_TTL: ${ACCESS_TOKEN_TTL:-15m}
+      REFRESH_TOKEN_TTL: ${REFRESH_TOKEN_TTL:-30d}
+      LIVEKIT_URL: ${LIVEKIT_URL:?set LIVEKIT_URL in .env}
+      LIVEKIT_API_URL: http://livekit:7880
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}
+      LIVEKIT_TOKEN_TTL: ${LIVEKIT_TOKEN_TTL:-10m}
+      UPLOAD_DIRECTORY: /app/storage/uploads
+      MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-52428800}
+      MAX_LARGE_UPLOAD_SIZE: ${MAX_LARGE_UPLOAD_SIZE:-5368709120}
+      MAX_MESSAGE_LENGTH: ${MAX_MESSAGE_LENGTH:-4000}
+      LINK_PREVIEWS: ${LINK_PREVIEWS:-true}
+      LINK_PREVIEW_STEAM_COUNTRY: ${LINK_PREVIEW_STEAM_COUNTRY:-us}
+      LINK_PREVIEW_STEAM_LANGUAGE: ${LINK_PREVIEW_STEAM_LANGUAGE:-english}
+      STEAM_ART: ${STEAM_ART:-false}
+      GIF_PROVIDER: ${GIF_PROVIDER:-none}
+      GIF_API_KEY: ${GIF_API_KEY:-}
+      GIF_LOCALE: ${GIF_LOCALE:-en_US}
+      VOICE_NODE_DOMAIN: ${VOICE_NODE_DOMAIN:-}
+      CLIENT_VERSION_FILE: /app/config/client-version.json
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-300}
+      LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-10}
+    ports:
+      # Localhost-only: reachable by the host Nginx, not from the LAN or the Internet.
+      - "${BACKEND_HOST_BIND:-127.0.0.1}:${BACKEND_HOST_PORT:?set BACKEND_HOST_PORT in .env}:3000"
+    volumes:
+      - uploads:/app/storage/uploads
+      - ./config:/app/config:ro
+    networks:
+      - internal
+      - edge
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    logging: *default-logging
+
+  livekit:
+    image: ${LIVEKIT_IMAGE:-livekit/livekit-server:v1.13.7}
+    # Started only with voice on (COMPOSE_PROFILES=voice in .env).
+    profiles: ["voice"]
+    restart: unless-stopped
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
+      # Full LiveKit configuration, built from .env (see docker/livekit/README.md).
+      # WebRTC requires host port == container port for RTC/TURN, so the same
+      # numbers are used on both sides of the mappings below.
+      LIVEKIT_CONFIG: |
+        port: 7880
+        bind_addresses:
+          - 0.0.0.0
+        log_level: ${LIVEKIT_LOG_LEVEL:-info}
+        rtc:
+          tcp_port: ${LIVEKIT_RTC_TCP_PORT:?set LIVEKIT_RTC_TCP_PORT in .env}
+          port_range_start: ${LIVEKIT_RTC_PORT_START:?set LIVEKIT_RTC_PORT_START in .env}
+          port_range_end: ${LIVEKIT_RTC_PORT_END:?set LIVEKIT_RTC_PORT_END in .env}
+          use_external_ip: ${LIVEKIT_USE_EXTERNAL_IP:-true}
+          node_ip: "${LIVEKIT_NODE_IP:-}"
+        turn:
+          enabled: true
+          domain: ${LIVEKIT_TURN_DOMAIN:?set LIVEKIT_TURN_DOMAIN in .env}
+          udp_port: ${TURN_UDP_HOST_PORT:?set TURN_UDP_HOST_PORT in .env}
+          tls_port: ${TURN_TLS_HOST_PORT:-0}
+          cert_file: ${LIVEKIT_TURN_CERT_FILE:-}
+          key_file: ${LIVEKIT_TURN_KEY_FILE:-}
+          relay_range_start: ${TURN_RELAY_PORT_START:-30000}
+          relay_range_end: ${TURN_RELAY_PORT_END:-30100}
+        room:
+          empty_timeout: 300
+          departure_timeout: 20
+          max_participants: 20
+        limit:
+          num_tracks: 200
+    ports:
+      # Signaling (HTTP + WebSocket): localhost-only, proxied by Caddy / nginx for
+      # wss://rtc.<your domain> (separate server block, same port 443).
+      - "${LIVEKIT_HOST_BIND:-127.0.0.1}:${LIVEKIT_HOST_PORT:?set LIVEKIT_HOST_PORT in .env}:7880"
+      # Media: must be reachable from the Internet (router forwarding + firewall).
+      - "${LIVEKIT_RTC_TCP_PORT}:${LIVEKIT_RTC_TCP_PORT}/tcp"
+      - "${LIVEKIT_RTC_PORT_START}-${LIVEKIT_RTC_PORT_END}:${LIVEKIT_RTC_PORT_START}-${LIVEKIT_RTC_PORT_END}/udp"
+      - "${TURN_UDP_HOST_PORT}:${TURN_UDP_HOST_PORT}/udp"
+    networks:
+      - edge
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    logging: *default-logging
+
+networks:
+  # No outside access at all; only backend and postgres are attached.
+  internal:
+    internal: true
+  # Backend <-> LiveKit API traffic and LiveKit's published ports.
+  edge: {}
+
+volumes:
+  pgdata:
+  uploads:

@@ -1,0 +1,167 @@
+/* 0.5.0 AIDis notification cards (bottom-right). Dark and compact; our own look. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  user-select: none;
+}
+
+.stack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0 8px 4px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.toast {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 10px 40px 10px 12px;
+  border-radius: 12px;
+  background: rgba(24, 26, 34, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  color: #e6e8ee;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(40px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.toast.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+.toast.is-leaving {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+.toast:hover {
+  background: rgba(30, 33, 44, 0.98);
+}
+
+.toast.is-mention {
+  border-color: rgba(250, 166, 26, 0.55);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.45),
+    inset 3px 0 0 #faa61a;
+}
+
+.toast-app {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+.toast-app img {
+  width: 16px;
+  height: 16px;
+}
+
+.toast-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.toast-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.toast-body {
+  min-width: 0;
+}
+
+.toast-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.toast-name {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+}
+
+.toast-channel {
+  font-size: 12px;
+  color: #9aa0ad;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toast-text {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #c9ccd6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.toast-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #9aa0ad;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.toast-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast.is-leaving {
+    transform: none;
+    transition: opacity 0.15s ease;
+  }
+}

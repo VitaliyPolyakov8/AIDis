@@ -1,0 +1,159 @@
+/* =====================================================================================
+   AIDis 0.5.0 — stream viewers bar, webcam, nickname color, camera picker.
+   ===================================================================================== */
+
+/* ---- who is watching this stream: floats at the top centre, fades after a few seconds ---- */
+.stream-viewers {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 220px);
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgba(12, 14, 20, 0.72);
+  backdrop-filter: blur(6px);
+  color: #e6e8ee;
+  font-size: var(--text-xs);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.stream-viewers.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.stream-viewers-avatars {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stream-viewers-avatars > li {
+  margin-left: -6px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(12, 14, 20, 0.9);
+  pointer-events: auto;
+}
+
+.stream-viewers-avatars > li:first-child {
+  margin-left: 0;
+}
+
+.stream-viewers-more {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #2a2e3a;
+  font-weight: 650;
+}
+
+.stream-viewers-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  color: #c9ccd6;
+}
+
+.stream-viewers-event {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stream-viewers,
+  .stream-viewers.is-visible {
+    transform: translate(-50%, 0);
+    transition: opacity 0.2s ease;
+  }
+}
+
+/* ---- webcam ------------------------------------------------------------------------------ */
+.stream-video.is-mirrored,
+.camera-preview video.is-mirrored {
+  transform: scaleX(-1);
+}
+
+.stream-tile.is-camera .stream-video {
+  object-fit: contain;
+}
+
+.live-badge.is-camera {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #3b82f6;
+}
+
+.watch-stream.is-camera {
+  margin-top: 4px;
+}
+
+.camera-picker .camera-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0b0c0f;
+}
+
+.camera-picker .camera-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-picker .camera-preview .spinner {
+  position: absolute;
+}
+
+.camera-picker .camera-error {
+  position: absolute;
+  inset: auto 12px 12px 12px;
+  margin: 0;
+}
+
+.camera-fields {
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+/* ---- nickname color ----------------------------------------------------------------------- */
+.nickname-preview {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #111214;
+  font-weight: 700;
+}
+
+/* ---- 0.5.0 interface settings: notification volume row ------------------------------------ */
+.setting-row-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-row-value {
+  min-width: 3.5ch;
+  text-align: right;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

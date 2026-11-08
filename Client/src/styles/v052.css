@@ -1,0 +1,35 @@
+/* 0.5.2: dragging people between voice channels (channel list). */
+.voice-occupant.is-draggable {
+  cursor: grab;
+}
+
+.voice-occupant.is-draggable:active {
+  cursor: grabbing;
+}
+
+.channel-list li.voice-channel.is-move-target {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent-primary, var(--accent)) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-primary, var(--accent)) 60%, transparent);
+}
+
+/* 0.5.2: text-to-speech. */
+.composer-tts {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  color: var(--text-muted);
+}
+
+.composer-tts.is-active {
+  color: var(--accent-primary, var(--accent));
+  background: color-mix(in srgb, var(--accent-primary, var(--accent)) 16%, transparent);
+}
+
+.message-tts {
+  display: inline-flex;
+  vertical-align: -1px;
+  margin-left: 6px;
+  color: var(--text-faint);
+  cursor: default;
+}

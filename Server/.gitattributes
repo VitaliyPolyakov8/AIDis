@@ -1,0 +1,6 @@
+# Shell scripts and config files run on Linux: force LF line endings even when edited on Windows.
+* text=auto eol=lf
+*.sh text eol=lf
+*.conf text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

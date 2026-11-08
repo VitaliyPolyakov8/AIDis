@@ -1,0 +1,8 @@
+.voice-recorder { position: relative; display: flex; align-items: center; flex-shrink: 0; }
+.voice-recorder-panel { position: absolute; bottom: 38px; right: 0; z-index: 12; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: min(410px, calc(100vw - 40px)); padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-panel, #20212a); box-shadow: 0 8px 28px #0004; }
+.voice-recorder-panel audio { width: 100%; max-width: 100%; height: 36px; }
+.voice-recorder-panel small { width: 100%; color: var(--text-muted); }
+.voice-recorder-error { position: absolute; bottom: 40px; right: 0; width: 260px; padding: 10px; background: var(--bg-panel, #20212a); border-radius: 8px; }
+.voice-transcript { width: 100%; max-width: 440px; padding: 6px 10px; color: var(--text-muted); font-size: 12px; }
+.voice-transcript summary { cursor: pointer; }
+.voice-transcript p { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-primary); }

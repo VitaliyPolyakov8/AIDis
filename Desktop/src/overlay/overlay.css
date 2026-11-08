@@ -1,0 +1,597 @@
+/* AIDis overlay: transparent window; only the cards have a (configurable) background.
+   No blur, no infinite animations: cheap to composite over a game. */
+:root {
+  --ov-bg-alpha: 0.7;
+  --ov-text: #f2f4f8;
+  --ov-muted: #b9bfcc;
+  --ov-live: #4fd1a1;
+  --ov-danger: #ef6b73;
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font: 13px/1.3 'Segoe UI', system-ui, sans-serif;
+  color: var(--ov-text);
+  user-select: none;
+}
+
+.overlay {
+  height: 100%;
+  box-sizing: border-box;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overlay.is-top-right,
+.overlay.is-bottom-right {
+  align-items: flex-end;
+}
+
+.overlay.is-top-left,
+.overlay.is-bottom-left {
+  align-items: flex-start;
+}
+
+/* Bottom corners grow upwards. */
+.overlay.is-bottom-left,
+.overlay.is-bottom-right {
+  flex-direction: column-reverse;
+}
+
+.overlay.is-interactive {
+  outline: 2px dashed rgba(138, 156, 255, 0.9);
+  outline-offset: -2px;
+  border-radius: 10px;
+  background: rgba(16, 18, 24, 0.35);
+  -webkit-app-region: drag;
+  cursor: move;
+}
+
+.overlay.is-interactive button {
+  -webkit-app-region: no-drag;
+}
+
+.ov-header:empty {
+  display: none;
+}
+
+.ov-header {
+  max-width: 300px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(30, 34, 46, 0.95);
+}
+
+.ov-header-title {
+  font-weight: 700;
+  color: #c9d0ff;
+}
+
+.ov-header-hint {
+  margin: 2px 0 8px;
+  font-size: 11.5px;
+  color: var(--ov-muted);
+}
+
+.ov-header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ov-btn {
+  height: 30px;
+  min-width: 30px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ov-text);
+  background: rgba(255, 255, 255, 0.12);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ov-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.ov-btn.is-off {
+  color: #fff;
+  background: rgba(239, 107, 115, 0.85);
+}
+
+.ov-done {
+  background: #5865f2;
+}
+
+.ov-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ov-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 260px;
+  padding: 3px 9px 3px 3px;
+  border-radius: 999px;
+  /* Silent (0.3.1): lower emphasis, still readable. Fades back in 250 ms when someone stops talking. */
+  background: rgba(16, 18, 24, calc(var(--ov-bg-alpha) * 0.75));
+  opacity: 0.72;
+  transition:
+    opacity 0.25s ease-out,
+    background-color 0.25s ease-out;
+}
+
+/* Speaking: everything switches on at once (no animation delay on activation). */
+.ov-row.is-speaking {
+  opacity: 1;
+  background: rgba(16, 18, 24, var(--ov-bg-alpha));
+  transition-duration: 0s;
+}
+
+.ov-avatar {
+  filter: grayscale(0.85) brightness(0.8);
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 0 0 2px transparent;
+  transition:
+    box-shadow 0.25s ease-out,
+    filter 0.25s ease-out;
+}
+
+.ov-avatar img.ov-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Speaking: green ring, full colour avatar, white name, immediately. */
+.ov-row.is-speaking .ov-avatar {
+  box-shadow: 0 0 0 2px var(--ov-live);
+  filter: none;
+  transition-duration: 0s;
+}
+
+.ov-row.is-speaking .ov-name {
+  color: #fff;
+  transition-duration: 0s;
+}
+
+/* With the speaking indicator turned off in the settings nobody is dimmed. */
+.overlay.no-speaking .ov-row {
+  opacity: 1;
+}
+
+.overlay.no-speaking .ov-avatar {
+  filter: none;
+}
+
+.ov-name {
+  transition: color 0.25s ease-out;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  color: #a3a9b6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.ov-icons {
+  display: inline-flex;
+  gap: 3px;
+  color: var(--ov-danger);
+}
+
+.ov-icons:empty {
+  display: none;
+}
+
+.ov-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 300px;
+}
+
+.ov-chat:empty {
+  display: none;
+}
+
+.ov-chat-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ov-muted);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.ov-msg {
+  display: flex;
+  gap: 7px;
+  padding: 6px 9px 6px 6px;
+  border-radius: 10px;
+  background: rgba(16, 18, 24, var(--ov-bg-alpha));
+}
+
+.ov-msg-empty {
+  color: var(--ov-muted);
+}
+
+.ov-msg-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-msg-author {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.ov-msg-text {
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- 0.4.0 ------------------------------------------------------------------------ */
+
+.overlay.panel-chat {
+  justify-content: flex-start;
+}
+
+.overlay.panel-chat.is-bottom-left,
+.overlay.panel-chat.is-bottom-right {
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.ov-profile {
+  font-weight: 600;
+  color: var(--ov-muted);
+}
+
+.ov-live {
+  margin-left: 2px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--ov-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.ov-row.is-clickable {
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.ov-row.is-clickable:hover {
+  background: rgba(88, 101, 242, 0.55);
+}
+
+button.ov-msg {
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+button.ov-msg:hover {
+  background: rgba(40, 46, 66, var(--ov-bg-alpha));
+}
+
+.ov-msg.is-mention {
+  box-shadow: inset 3px 0 0 #f0b232;
+}
+
+.ov-msg.is-target {
+  box-shadow: inset 0 0 0 2px #6d86ff;
+}
+
+.ov-msg-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ov-msg-channel {
+  font-size: 11px;
+  color: var(--ov-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-reply {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 330px;
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  background: rgba(30, 34, 46, 0.95);
+  -webkit-app-region: no-drag;
+}
+
+.ov-reply[hidden] {
+  display: none;
+}
+
+.ov-reply-label {
+  font-size: 11px;
+  color: var(--ov-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-reply-row {
+  display: flex;
+  gap: 6px;
+}
+
+.ov-reply-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(10, 12, 18, 0.9);
+  color: var(--ov-text);
+  font: inherit;
+  outline: none;
+}
+
+.ov-reply-input:focus {
+  border-color: #6d86ff;
+}
+
+.ov-send {
+  background: #5865f2;
+}
+
+/* Message avatars are never dimmed (only silent participants are). */
+.ov-msg .ov-avatar {
+  filter: none;
+}
+
+/* 0.4.1: a profile frame is drawn only while the person speaks (silent rows stay dimmed). */
+.ov-row.is-speaking.frame-neon .ov-avatar {
+  box-shadow: 0 0 0 2px #3fe0ff, 0 0 8px 1px rgba(109, 134, 255, 0.7);
+}
+
+.ov-row.is-speaking.frame-scifi .ov-avatar {
+  box-shadow: 0 0 0 2px #7ee8ff, 0 0 0 3px #2f6fff;
+}
+
+.ov-row.is-speaking.frame-gold .ov-avatar {
+  box-shadow: 0 0 0 2px #d4a33b, 0 0 6px rgba(247, 215, 122, 0.6);
+}
+
+.ov-row.is-speaking.frame-pulse .ov-avatar {
+  box-shadow: 0 0 0 2px #4d8bff, 0 0 10px rgba(77, 139, 255, 0.8);
+}
+
+.ov-row.is-speaking.frame-violet .ov-avatar {
+  box-shadow: 0 0 0 2px #9b7bff, 0 0 8px rgba(255, 107, 213, 0.6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ov-row.is-speaking[class*='frame-'] .ov-avatar {
+    animation: ov-frame-breathe 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes ov-frame-breathe {
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
+/* 0.5.1: built-in animated avatar frame around the avatar; calm while idle, bright while speaking.
+   0.5.6: in its own box next to the round avatar (see avatar() in overlay.ts), sized per frame. */
+.ov-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  /* Room for the part of the frame outside the 26 px avatar, so rows and names never overlap. */
+  margin: calc((var(--ov-frame-scale, 1.3) - 1) * 11px) calc((var(--ov-frame-scale, 1.3) - 1) * 9px);
+}
+
+.ov-cosmetic-frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(26px * var(--ov-frame-scale, 1.3));
+  height: calc(26px * var(--ov-frame-scale, 1.3));
+  transform: translate(-50%, -50%);
+  max-width: none;
+  pointer-events: none;
+  opacity: 0.6;
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+
+.ov-row.is-speaking .ov-cosmetic-frame {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px var(--ov-live));
+}
+
+/* With an animated frame the frame is the speaking indicator (no extra green ring under it). */
+.ov-row.is-speaking .ov-avatar-wrap .ov-avatar {
+  box-shadow: none;
+}
+
+
+/* 0.5.6: name styles (same as the app); fonts are local copies (the overlay has no network). */
+
+.ov-name-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
+}
+
+.ov-name-glow {
+  filter: drop-shadow(0 0 0.2em color-mix(in srgb, var(--ov-name-glow) 60%, transparent));
+}
+
+@font-face {
+  font-family: 'Unbounded';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/unbounded-cyrillic-400-normal.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'Unbounded';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/unbounded-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.ov-font-unbounded {
+  font-family: 'Unbounded', sans-serif;
+}
+
+@font-face {
+  font-family: 'Comfortaa';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/comfortaa-cyrillic-400-normal.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'Comfortaa';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/comfortaa-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.ov-font-comfortaa {
+  font-family: 'Comfortaa', sans-serif;
+}
+
+@font-face {
+  font-family: 'Lobster';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/lobster-cyrillic-400-normal.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'Lobster';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/lobster-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.ov-font-lobster {
+  font-family: 'Lobster', sans-serif;
+}
+
+@font-face {
+  font-family: 'Caveat';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/caveat-cyrillic-400-normal.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'Caveat';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/caveat-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.ov-font-caveat {
+  font-family: 'Caveat', sans-serif;
+  font-size: 1.18em;
+}
+
+@font-face {
+  font-family: 'Press Start 2P';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/press-start-2p-cyrillic-400-normal.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'Press Start 2P';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/press-start-2p-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.ov-font-press-start {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 0.72em;
+}
+
+@font-face {
+  font-family: 'Russo One';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/russo-one-cyrillic-400-normal.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'Russo One';
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/russo-one-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.ov-font-russo-one {
+  font-family: 'Russo One', sans-serif;
+}

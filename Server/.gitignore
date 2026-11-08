@@ -1,0 +1,33 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+src/generated/
+
+# Secrets: never commit the real environment file
+.env
+.env.*
+!.env.example
+
+# Runtime data
+storage/uploads/*
+!storage/uploads/.gitkeep
+backups/*
+!backups/.gitkeep
+
+# Logs / OS / editor noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Written by deploy/setup.sh (per installation, never committed)
+install.env
+config/setup-code
+config/client-version.json
+Caddyfile
+nginx-site.conf
+web/
+web.new/

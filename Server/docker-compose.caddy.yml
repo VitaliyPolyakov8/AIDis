@@ -1,0 +1,23 @@
+# HTTPS for AIDis with Caddy. deploy/setup.sh adds this file (COMPOSE_FILE in .env) when ports 80/443
+# are free on the VPS; with nginx already there, the site is added to that nginx instead.
+# Caddy runs on the host network: it reaches the backend and LiveKit on their localhost-only ports
+# and serves the web client from ./web. Certificates live in the caddy_data volume.
+services:
+  caddy:
+    image: ${CADDY_IMAGE:-caddy:2.8.4}
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./web:/srv/web:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,725 @@
+/* =====================================================================================
+   AIDis 0.4.1 — interface gradient themes, voice session timer, game artwork, speaking frames,
+   "Stream <game>". Loaded after v040.css.
+   ===================================================================================== */
+
+/* ---- interface gradient themes ---------------------------------------------------------
+   A theme only redefines the tokens from v040.css :root (--accent-primary, --accent-secondary,
+   --accent-rgb, --surface-gradient, --surface-selected, --accent-glow, a few deep shades and
+   background tints). Status colors (error red, online green, DND, warning) never change. */
+
+:root {
+  --theme-bg-tint: none;
+}
+
+.rail,
+.members,
+.guild-rail {
+  background-image: var(--surface-gradient);
+}
+
+.center-header {
+  background-image: linear-gradient(90deg, rgb(var(--accent-rgb) / 0.05), transparent 55%);
+}
+
+html[data-ui-theme='aurora'] {
+  --accent-primary: #4fb3ff;
+  --accent-secondary: #9b7bff;
+  --accent-rgb: 79 179 255;
+  --accent-hi: #7cc8ff;
+  --accent-deep: #1f6fbf;
+  --accent-deep-2: #5b3fd0;
+  --surface-gradient: linear-gradient(165deg, rgb(56 189 248 / 0.1), rgb(139 92 246 / 0.07) 45%, transparent 75%);
+  --surface-selected: rgb(79 179 255 / 0.16);
+  --accent-glow: rgb(56 189 248 / 0.3);
+  --bg-guild: #0a0e14;
+  --bg-rail: #10151c;
+}
+
+html[data-ui-theme='sunset'] {
+  --accent-primary: #ff8a5b;
+  --accent-secondary: #c45bd6;
+  --accent-rgb: 255 138 91;
+  --accent-hi: #ffa47d;
+  --accent-deep: #9e2b45;
+  --accent-deep-2: #c2552d;
+  --surface-gradient: linear-gradient(165deg, rgb(190 50 80 / 0.13), rgb(255 140 60 / 0.06) 45%, rgb(150 70 200 / 0.04) 75%, transparent);
+  --surface-selected: rgb(255 138 91 / 0.15);
+  --accent-glow: rgb(255 120 80 / 0.28);
+  --bg-guild: #110c10;
+  --bg-rail: #17111a;
+}
+
+html[data-ui-theme='emerald'] {
+  --accent-primary: #2fc6b0;
+  --accent-secondary: #3fa7d6;
+  --accent-rgb: 47 198 176;
+  --accent-hi: #5ad8c5;
+  --accent-deep: #146b5c;
+  --accent-deep-2: #1d6f8f;
+  --surface-gradient: linear-gradient(165deg, rgb(20 160 130 / 0.11), rgb(30 120 160 / 0.06) 50%, transparent 78%);
+  --surface-selected: rgb(47 198 176 / 0.15);
+  --accent-glow: rgb(47 198 176 / 0.26);
+  --accent-text: #04140f;
+  --bg-guild: #091010;
+  --bg-rail: #0f1617;
+}
+
+html[data-ui-theme='crimson'] {
+  --accent-primary: #e4566a;
+  --accent-secondary: #a8324f;
+  --accent-rgb: 228 86 106;
+  --accent-hi: #ef7a8a;
+  --accent-deep: #6e1424;
+  --accent-deep-2: #9b2335;
+  --surface-gradient: linear-gradient(165deg, rgb(150 20 40 / 0.14), rgb(60 60 70 / 0.05) 50%, transparent 78%);
+  --surface-selected: rgb(228 86 106 / 0.15);
+  --accent-glow: rgb(200 40 60 / 0.28);
+  --bg-guild: #0d0d0f;
+  --bg-rail: #141416;
+  --bg-chat: #18181b;
+}
+
+html[data-ui-theme='midnight'] {
+  --accent-primary: #a77bff;
+  --accent-secondary: #6f5bff;
+  --accent-rgb: 167 123 255;
+  --accent-hi: #bd9cff;
+  --accent-deep: #4b2a99;
+  --accent-deep-2: #6a2fb5;
+  --surface-gradient: linear-gradient(165deg, rgb(110 60 220 / 0.13), rgb(60 40 160 / 0.07) 50%, transparent 78%);
+  --surface-selected: rgb(167 123 255 / 0.16);
+  --accent-glow: rgb(140 90 255 / 0.3);
+  --bg-guild: #0c0a14;
+  --bg-rail: #120f1c;
+}
+
+html[data-ui-theme='neutral'] {
+  --accent-primary: #9aa3b5;
+  --accent-secondary: #b7bfcc;
+  --accent-rgb: 154 163 181;
+  --accent-hi: #b3bbca;
+  --accent-deep: #3a3f4b;
+  --accent-deep-2: #4a505c;
+  --surface-gradient: none;
+  --surface-selected: rgb(154 163 181 / 0.14);
+  --accent-glow: rgb(0 0 0 / 0.25);
+  --accent-text: #0e1014;
+  --bg-guild: #0d0e11;
+  --bg-rail: #141519;
+  --bg-chat: #17181c;
+}
+
+/* Settings → Appearance: theme swatches. */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+}
+
+.theme-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out;
+}
+
+.theme-swatch:hover {
+  border-color: rgb(var(--accent-rgb) / 0.4);
+}
+
+.theme-swatch.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 14px var(--accent-glow);
+  color: var(--text);
+}
+
+.theme-swatch-preview {
+  height: 46px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ---- voice session timer ----------------------------------------------------------------- */
+
+.voice-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.voice-link .voice-timer + .channel-count {
+  margin-left: 6px;
+}
+
+.voice-timer.is-chip {
+  margin-left: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+}
+
+/* ---- game artwork -------------------------------------------------------------------------- */
+
+.game-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.game-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The Steam image stays invisible until it has loaded: never a broken image. */
+.game-art .game-art-img {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.game-art.is-loaded .game-art-img {
+  opacity: 1;
+}
+
+.game-art .game-art-local {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.game-art.is-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.game-art.is-icon.has-local-icon {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px;
+}
+
+.game-art.is-icon.has-local-icon img {
+  object-fit: contain;
+}
+
+/* Profile activity card with artwork. */
+.profile-activity.profile-game-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(120deg, var(--game-soft), rgba(0, 0, 0, 0.12)),
+    var(--bg-elevated);
+}
+
+.profile-activity.profile-game-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--game-accent) 18%, transparent), transparent 60%);
+  pointer-events: none;
+}
+
+.game-card-art.is-header {
+  width: 104px;
+  height: 49px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.profile-game-card .profile-activity-text {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.profile-game-card .profile-activity-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-duration {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--game-accent);
+}
+
+/* ---- speaking frame (voice views) -----------------------------------------------------------
+   The user's frame and its animation exist only while they speak; silent = no frame, paused. */
+
+.speaking-frame {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.speaking-frame.avatar-frame::before {
+  opacity: 0;
+  animation-play-state: paused;
+  transition: opacity 0.25s ease-out;
+}
+
+.speaking-frame.avatar-frame.is-speaking::before {
+  opacity: 1;
+  animation-play-state: running;
+  transition-duration: 0.06s;
+}
+
+.speaking-frame.avatar-frame:not(.is-speaking) {
+  filter: none;
+  animation: none;
+}
+
+/* With a frame, the frame is the speaking indicator (no second ring under it). */
+.speaking-frame.avatar-frame .avatar.is-speaking {
+  box-shadow: 0 0 0 2px var(--bg-ring, var(--bg-rail));
+  animation: none;
+}
+
+/* ---- "Stream <game>" in the voice dock ----------------------------------------------------- */
+
+.dock-game {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--game-accent) 30%, transparent);
+  background: linear-gradient(100deg, var(--game-soft), transparent 80%);
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease-out,
+    background-color 0.15s ease-out;
+}
+
+.dock-game:hover:not(:disabled) {
+  border-color: var(--game-accent);
+  color: var(--text);
+}
+
+.dock-game:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.dock-game .game-art.is-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.dock-game-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.dock-game-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dock-game-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dock-game-icon {
+  flex-shrink: 0;
+  color: var(--game-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speaking-frame.avatar-frame::before,
+  .game-art .game-art-img {
+    transition: none;
+  }
+}
+
+/* ---- 0.4.2: voice channel row and voice header never overlap ------------------------------- */
+
+.voice-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.voice-row .voice-link {
+  flex: 1;
+  min-width: 0;
+}
+
+.voice-row .voice-link .voice-timer,
+.voice-row .voice-link .channel-count {
+  flex-shrink: 0;
+}
+
+.voice-row .voice-link .voice-timer {
+  margin-left: 0;
+}
+
+.voice-row .voice-chat-link {
+  position: relative;
+  top: auto;
+  right: auto;
+  flex-shrink: 0;
+}
+
+.center-header {
+  container: center-header / inline-size;
+  min-width: 0;
+}
+
+.center-header-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.center-header-actions {
+  flex-shrink: 0;
+}
+
+.center-header-actions > * {
+  flex-shrink: 0;
+}
+
+/* Narrow header: labels collapse to icons (title / aria-label stay), nothing overlaps. */
+@container center-header (max-width: 700px) {
+  .center-header .header-label {
+    display: none;
+  }
+
+  .center-header-desc {
+    display: none;
+  }
+}
+
+@container center-header (max-width: 460px) {
+  .center-header .voice-timer.is-chip svg {
+    display: none;
+  }
+}
+
+/* ---- 0.4.2: image viewer pan ----------------------------------------------------------- */
+
+.lightbox-stage img {
+  transform-origin: center center;
+  touch-action: none;
+  user-select: none;
+}
+
+.lightbox-stage img.is-zoomed {
+  cursor: grab;
+}
+
+.lightbox-stage img.is-dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+/* ---- 0.4.2: resizable voice chat panel ----------------------------------------------------- */
+
+.voice-chat.is-resizable,
+.stream-shell.is-fullscreen .voice-chat.is-resizable {
+  position: relative;
+  flex: 0 0 var(--voice-chat-width, 340px);
+  width: var(--voice-chat-width, 340px);
+  min-width: 300px;
+  max-width: 60%;
+}
+
+.voice-chat-resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  width: 8px;
+  z-index: 5;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.voice-chat-resize::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+  background: transparent;
+  transition: background-color 0.15s ease-out;
+}
+
+.voice-chat-resize:hover::after,
+.voice-chat-resize:focus-visible::after,
+.voice-chat.is-resizing .voice-chat-resize::after {
+  background: var(--accent);
+}
+
+.voice-chat.is-resizing {
+  user-select: none;
+}
+
+@media (max-width: 700px) {
+  .voice-chat.is-resizable {
+    flex: 1;
+    width: auto;
+    max-width: none;
+  }
+
+  .voice-chat-resize {
+    display: none;
+  }
+}
+
+/* ---- 0.4.2: themed title bar (desktop, Windows) --------------------------------------------
+   The page draws the caption; Windows draws the window controls on top (titleBarOverlay) in
+   --titlebar-bg / --titlebar-fg, which the app sends to the shell on every theme change. */
+
+:root {
+  --titlebar-height: 32px;
+  /* 0.4.5: usable app height (the viewport minus the title bar, when there is one). */
+  --app-viewport-height: 100dvh;
+  --titlebar-bg: #0b0d12;
+  --titlebar-fg: #c4cad8;
+  /* Width of the native minimize / maximize / close buttons. */
+  --titlebar-controls: 138px;
+}
+
+html[data-ui-theme='aurora'] {
+  --titlebar-bg: #0a1019;
+  --titlebar-fg: #bfe3ff;
+}
+
+html[data-ui-theme='sunset'] {
+  --titlebar-bg: #160b11;
+  --titlebar-fg: #ffd2bf;
+}
+
+html[data-ui-theme='emerald'] {
+  --titlebar-bg: #071311;
+  --titlebar-fg: #bdeee5;
+}
+
+html[data-ui-theme='crimson'] {
+  --titlebar-bg: #150a0d;
+  --titlebar-fg: #f1c4cb;
+}
+
+html[data-ui-theme='midnight'] {
+  --titlebar-bg: #0f0b1d;
+  --titlebar-fg: #d9ccff;
+}
+
+html[data-ui-theme='neutral'] {
+  --titlebar-bg: #0f1013;
+  --titlebar-fg: #c9ccd3;
+}
+
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-height);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--titlebar-controls) + 6px) 0 12px;
+  background: var(--titlebar-bg);
+  color: var(--titlebar-fg);
+  font-size: 12px;
+  font-weight: 650;
+  user-select: none;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.titlebar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  opacity: 0.85;
+}
+
+.titlebar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.titlebar-actions > * {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+html.has-titlebar {
+  --app-viewport-height: calc(100dvh - var(--titlebar-height));
+}
+
+/* 0.4.5: the title bar's space is the body's padding (border-box), so #root and everything in it
+   is exactly the window height minus the title bar. (0.4.2 used a margin on #root plus a shell
+   sized with 100dvh: the shell stayed one full viewport tall, so the bottom 32 px fell outside.) */
+html.has-titlebar body {
+  padding-top: var(--titlebar-height);
+}
+
+html.has-titlebar #root {
+  height: 100%;
+}
+
+.titlebar-update {
+  width: 30px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #3fd49b;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.titlebar-update:hover:not(:disabled) {
+  background: rgba(63, 212, 155, 0.16);
+}
+
+.titlebar-update.is-ready {
+  background: #23a55a;
+  color: #fff;
+}
+
+.titlebar-update.is-ready:hover {
+  background: #1f9150;
+}
+
+.titlebar-update:disabled {
+  cursor: default;
+}
+
+.titlebar-update-ring {
+  transform: rotate(-90deg);
+}
+
+.titlebar-update-ring circle {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.titlebar-update-ring .ring-track {
+  stroke: rgba(63, 212, 155, 0.22);
+}
+
+.titlebar-update-ring .ring-value {
+  stroke: #3fd49b;
+  transition: stroke-dashoffset 0.3s ease-out;
+}
+
+/* Full-window layers start below the title bar, so the native window controls never cover
+   their own buttons (close, zoom...). Drawers of the narrow layout too. */
+html.has-titlebar .modal-backdrop,
+html.has-titlebar .lightbox,
+html.has-titlebar .drawer-scrim {
+  top: var(--titlebar-height);
+}
+
+@media (max-width: 1100px) {
+  html.has-titlebar .shell .members,
+  html.has-titlebar .shell.members-closed .members {
+    top: var(--titlebar-height);
+  }
+}
+
+@media (max-width: 760px) {
+  html.has-titlebar .shell .rail {
+    top: var(--titlebar-height);
+  }
+}
+
+html.has-titlebar .incoming-call {
+  top: calc(var(--titlebar-height) + 18px);
+}
+
+/* A fullscreen stream hides the caption (the window is fullscreen, Windows hides the controls). */
+html:has(:fullscreen) .titlebar {
+  display: none;
+}
+
+/* ---- 0.4.5: member rows: name line + full-width activity line ------------------------------
+   Line 1: name (ellipsizes first), badges, voice icon pushed to the right edge.
+   Line 2: "Playing <game>" across the whole text column; very long names end in an ellipsis and
+   the full name is in the tooltip (and always in full in the profile card). */
+.member-name .member-name-text {
+  flex: 0 1 auto;
+}
+
+.member-name > :not(.member-name-text) {
+  flex-shrink: 0;
+}
+
+.member-name .member-voice {
+  margin-left: auto;
+}
+
+.member-text .activity-pill.is-compact {
+  display: flex;
+  width: 100%;
+}
+
+.member-text .activity-pill.is-compact .activity-pill-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The profile card shows the whole game name (wraps instead of cutting). */
+.profile-game-card .profile-activity-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow: visible;
+}
