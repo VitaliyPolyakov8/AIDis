@@ -330,7 +330,7 @@ fi
 
 info "Building and starting AIDis (the first build takes several minutes)"
 cd "$DIR"
-docker compose pull --ignore-buildable
+docker compose pull --ignore-buildable || note "could not pull every image now; docker compose up pulls what is missing"
 docker compose build
 docker compose up -d --remove-orphans
 

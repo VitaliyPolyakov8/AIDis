@@ -58,7 +58,7 @@ rollback_help() {
 
 build_web "$REPO" "$WEB_DIR.new"
 info "Building the server"
-docker compose pull --ignore-buildable
+docker compose pull --ignore-buildable || note "could not pull every image now; docker compose up pulls what is missing"
 docker compose build
 
 info "Database migrations"
